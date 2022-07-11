@@ -13,6 +13,7 @@ and conditions of the chosen license apply to this file.
 // https://freedesktop.org/wiki/ClipboardManager/
 
 use std::{
+	borrow::Cow,
 	cell::RefCell,
 	collections::{hash_map::Entry, HashMap},
 	sync::{
@@ -850,14 +851,16 @@ impl Clipboard {
 		}
 	}
 
-	pub(crate) fn set_text(
+	pub(crate) fn set_text<'a, T: Into<Cow<'a, str>>>(
 		&self,
-		message: String,
+		message: T,
 		selection: LinuxClipboardKind,
 		wait: bool,
 	) -> Result<()> {
-		let data =
-			ClipboardData { bytes: message.into_bytes(), format: self.inner.atoms.UTF8_STRING };
+		let data = ClipboardData {
+			bytes: message.into().into_owned().into_bytes(),
+			format: self.inner.atoms.UTF8_STRING,
+		};
 		self.inner.write(data, selection, wait)
 	}
 
